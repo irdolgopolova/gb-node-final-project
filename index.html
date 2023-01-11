@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="https://cdn.socket.io/3.1.3/socket.io.min.js"
+        integrity="sha384-cPwlPLvBTa3sKAgddT6krw0cJat7egBga3DJepJyrLl4Q9/5WLra3rrnMcyTyOnh"
+        crossorigin="anonymous"></script>
+</head>
+
+<style>
+    .input_message {
+        max-width: 700px;
+        width: 90%;
+    }
+    .btn_message {
+        max-width: 100px;
+        width: 10%;
+    }
+    .messages_list {
+        width: 100%;
+        max-width: 810px;
+        height: 400px;
+        overflow: auto;
+        border: 1px solid black;
+        border-radius: 4px;
+        margin: 14px 0 0;
+    }
+    .message_block {
+        width: fit-content;
+        margin: 8px 0;
+        padding: 8px 16px;
+        border-radius: 8px;
+    }
+    .system_message_block {
+        text-align: center;
+    }
+</style>
+
+<body>
+    <input type="text" id="input" autofocus class="input_message">
+    <input type="button" id="button" value="Отправить" class="btn_message">
+
+    <div id="messages" class="messages_list"></div>
+
+    <script type="text/javascript">
+        const socket = io('localhost:3000');
+
+        socket.on('connect', function () {
+            person_name = prompt("Добро пожаловать! Пожалуйста, введите свое имя:");
+            socket.emit('NewPlayer', person_name);
+        });
+
+        socket.on('NEW_CLIENT_CONNECTED', data => {
+            console.log('Новый пользователь подключился');
+        });
+
+        socket.on('SERVER_MSG', data => {
+            const p = document.createElement('p');
+
+            if (data.author) {
+                p.innerHTML = `${data.author}: ${data.message}`;
+                p.classList.add('message_block');
+                p.style.backgroundColor = data.color;
+            } else {
+                p.innerHTML = data.message;
+                p.classList.add('system_message_block');
+            }
+
+            const messages = document.querySelector('#messages');
+            messages.scrollTop = messages.scrollHeight
+            messages.append(p);
+        });
+
+        document.querySelector('#button').onclick = () => {
+            socket.emit('CLIENT_MSG', {
+                message: document.querySelector('#input').value
+            })
+        };
+
+    </script>
+</body>
+
+</html>
